@@ -63,6 +63,8 @@ static __thread struct {
 
 static __thread struct {
 	uint32_t count;
+	PMEMobjpool *pop;
+	jmp_buf env;
 } tx_group;
 
 struct tx_lock_data {
@@ -1046,6 +1048,7 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 		VALGRIND_START_TX;
 	} else if (tx.stage == TX_STAGE_NONE) {
 		tx_group.count = 0;
+		tx_group.pop = pop;
 		VALGRIND_START_TX;
 
 		lane_hold(pop, &tx.section, LANE_SECTION_TRANSACTION);
@@ -1272,13 +1275,23 @@ pmemobj_tx_end()
 }
 
 
-void pmemobj_tx_group_commit(PMEMobjpool *pop, jmp_buf env)
+void pmemobj_tx_group_commit()
 {
+	struct lane_tx_runtime *lane = tx.section->runtime;
+	struct tx_data *txd = SLIST_FIRST(&lane->tx_entries);
+	PMEMobjpool *pop = lane->pop;
+
+	jmp_buf *env = Malloc(sizeof (jmp_buf));
+	if (txd->env != NULL)
+		memcpy(env, txd->env, sizeof (jmp_buf));
+	else
+		memset(env, 0, sizeof (jmp_buf));
+
 	tx_group.count++;
 	if (tx_group.count>=100) {
 		pmemobj_tx_commit();
 		pmemobj_tx_end();
-		pmemobj_tx_begin(pop, env);
+		pmemobj_tx_begin(pop, *env);
 	}
 }
 
