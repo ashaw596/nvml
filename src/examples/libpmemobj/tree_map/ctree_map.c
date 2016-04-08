@@ -228,6 +228,7 @@ ctree_map_insert(PMEMobjpool *pop, TOID(struct ctree_map) map,
 	} else {
 		//if (D_RO(map)->numTransactions == 0) {
 		//pmemobj_tx_commit_group();
+			//pmemobj_tx_begin(pop, NULL, TX_LOCK_NONE);
 			pmemobj_tx_begin_group(pop, NULL);
 			//int *ptr = &D_RW(map)->numTransactions;
 			//pmemobj_tx_add_range_direct(ptr, sizeof(int));
@@ -248,7 +249,7 @@ ctree_map_insert(PMEMobjpool *pop, TOID(struct ctree_map) map,
 					find_crit_bit(p->key, key));
 		}
 
-		//if (D_RO(map)->numTransactions>=1000) {
+		//if (D_RO(map)->numTransactions>=10) {
 			//if (set) {
 			//	hashset_destroy(set);
 			//}
@@ -257,7 +258,9 @@ ctree_map_insert(PMEMobjpool *pop, TOID(struct ctree_map) map,
 			//fflush(stdout);
 			//D_RW(map)->numTransactions = 0;
 			pmemobj_tx_commit_group(pop, NULL);
+			//pmemobj_tx_commit();
 			//pmemobj_tx_end();
+			//pmemobj_tx_begin(pop, NULL, TX_LOCK_NONE);
 		//}
 	} 
 

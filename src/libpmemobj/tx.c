@@ -1029,11 +1029,12 @@ tx_realloc_common(PMEMoid oid, size_t size, unsigned int type_num,
 
 int
 pmemobj_tx_begin_group(PMEMobjpool *pop, jmp_buf env) {
-	if (tx.stage == TX_STAGE_WORK) {
+	if (tx_group.count == 0) {
 		//Skip
-		return 0;
+		return pmemobj_tx_begin(pop, env, TX_LOCK_NONE);
 	} else {
-		return pmemobj_tx_begin(pop, env);
+		return 0;
+		
 	}
 }
 
@@ -1230,9 +1231,9 @@ pmemobj_tx_end()
 {
 	LOG(3, NULL);
 
-	if (tx_group.count > 0) {
-		pmemobj_tx_commit();
-	}
+	//if (tx_group.count > 0) {
+	//	pmemobj_tx_commit();
+	//}
 
 	if (tx.stage == TX_STAGE_WORK)
 		FATAL("pmemobj_tx_end called without pmemobj_tx_commit");
@@ -1288,7 +1289,7 @@ void pmemobj_tx_commit_group(PMEMobjpool *pop, jmp_buf env)
 {
 	tx_group.count++;
 
-	if (tx_group.count>=1) {
+	if (tx_group.count>=10) {
 		/*
 		struct lane_tx_runtime *lane = tx.section->runtime;
 		struct tx_data *txd = SLIST_FIRST(&lane->tx_entries);
@@ -1300,9 +1301,9 @@ void pmemobj_tx_commit_group(PMEMobjpool *pop, jmp_buf env)
 		else
 			memset(env, 0, sizeof (jmp_buf));
 		*/
-		//pmemobj_tx_commit();
+		tx_group.count = 0;
+		pmemobj_tx_commit();
 		pmemobj_tx_end();
-		pmemobj_tx_begin(pop, env);
 	}
 }
 
