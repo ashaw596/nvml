@@ -1027,6 +1027,15 @@ tx_realloc_common(PMEMoid oid, size_t size, unsigned int type_num,
 	return new_obj;
 }
 
+int
+pmemobj_tx_begin_group(PMEMobjpool *pop, jmp_buf env) {
+	if (tx.stage == TX_STAGE_WORK) {
+		//Skip
+		return 0;
+	} else {
+		return pmemobj_tx_begin(pop, env);
+	}
+}
 
 
 /*
@@ -1275,23 +1284,25 @@ pmemobj_tx_end()
 }
 
 
-void pmemobj_tx_group_commit()
+void pmemobj_tx_commit_group(PMEMobjpool *pop, jmp_buf env)
 {
-	struct lane_tx_runtime *lane = tx.section->runtime;
-	struct tx_data *txd = SLIST_FIRST(&lane->tx_entries);
-	PMEMobjpool *pop = lane->pop;
-
-	jmp_buf *env = Malloc(sizeof (jmp_buf));
-	if (txd->env != NULL)
-		memcpy(env, txd->env, sizeof (jmp_buf));
-	else
-		memset(env, 0, sizeof (jmp_buf));
-
 	tx_group.count++;
-	if (tx_group.count>=100) {
-		pmemobj_tx_commit();
+
+	if (tx_group.count>=1) {
+		/*
+		struct lane_tx_runtime *lane = tx.section->runtime;
+		struct tx_data *txd = SLIST_FIRST(&lane->tx_entries);
+		PMEMobjpool *pop = lane->pop;
+
+		jmp_buf *env = Malloc(sizeof (jmp_buf));
+		if (txd->env != NULL)
+			memcpy(env, txd->env, sizeof (jmp_buf));
+		else
+			memset(env, 0, sizeof (jmp_buf));
+		*/
+		//pmemobj_tx_commit();
 		pmemobj_tx_end();
-		pmemobj_tx_begin(pop, *env);
+		pmemobj_tx_begin(pop, env);
 	}
 }
 
