@@ -304,7 +304,7 @@ main(int argc, char *argv[])
 
 			printf("%d,%f\n", i*elements,dt1);
 		}
-		//pmemobj_tx_end_group();
+		pmemobj_tx_end_group();
 		pmemobj_close(pop);
 		//map_delete(mapc, map);
 		return 0;

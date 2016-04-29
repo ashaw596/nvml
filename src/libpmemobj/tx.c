@@ -1307,6 +1307,15 @@ void pmemobj_tx_commit_group(PMEMobjpool *pop, jmp_buf env)
 	}
 }
 
+void pmemobj_tx_end_group()
+{
+	if (tx_group.count>0) {
+		tx_group.count = 0;
+		pmemobj_tx_commit();
+		pmemobj_tx_end();
+	}
+}
+
 /*
  * pmemobj_tx_process -- processes current transaction stage
  */
