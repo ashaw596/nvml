@@ -107,6 +107,21 @@ str_check(const char *str)
 	}
 }
 
+
+static void
+str_insert_random_int(uint64_t num)
+{
+
+	for (uint64_t i = 0; i < num; i++) {
+		uint64_t r = ((uint64_t)rand()) << 32 | rand();
+		int ret = map_insert(mapc, map, r, OID_NULL);
+		if (ret < 0) {
+			fprintf(stderr, "Something went wrong\n");
+			break;
+		}
+	}
+}
+
 /*
  * str_insert_random -- inserts specified (as string) number of random numbers
  */
@@ -115,14 +130,7 @@ str_insert_random(const char *str)
 {
 	uint64_t val;
 	if (sscanf(str, "%lu", &val) > 0)
-		for (uint64_t i = 0; i < val; ) {
-			uint64_t r = ((uint64_t)rand()) << 32 | rand();
-			int ret = map_insert(mapc, map, r, OID_NULL);
-			if (ret < 0)
-				break;
-			if (ret == 0)
-				i += 1;
-		}
+		str_insert_random_int(val);
 	else
 		fprintf(stderr, "random insert: invalid syntax\n");
 }
@@ -160,6 +168,19 @@ str_rebuild(const char *str)
 	}
 }
 
+static void test(uint64_t num) {
+	map_clear(mapc, map);
+	struct timespec t2, t3;
+	clock_gettime(CLOCK_MONOTONIC,  &t2);
+	str_insert_random_int(num);
+	//for (volatile long long i=0; i<1e9; i++) {};
+	clock_gettime(CLOCK_MONOTONIC,  &t3);
+	//time in seconds
+	double dt1 = (t3.tv_sec - t2.tv_sec) + (double) (t3.tv_nsec - t2.tv_nsec) * 1e-9;
+
+	printf("%f\n", dt1);
+}
+
 static void
 help(void)
 {
@@ -195,11 +216,13 @@ print_all(void)
 	printf("\n");
 }
 
+
+
 #define	INPUT_BUF_LEN 1000
 int
 main(int argc, char *argv[])
 {
-	if (argc < 3 || argc > 4) {
+	if (argc < 3) {
 		printf("usage: %s hashmap_tx|hashmap_atomic|ctree|btree|rbtree"
 				" file-name [<seed>]\n", argv[0]);
 		return 1;
@@ -250,7 +273,7 @@ main(int argc, char *argv[])
 
 		root = POBJ_ROOT(pop, struct root);
 
-		printf("seed: %u\n", args.seed);
+		//printf("seed: %u\n", args.seed);
 		map_new(mapc, &D_RW(root)->map, &args);
 
 		map = D_RO(root)->map;
@@ -270,6 +293,17 @@ main(int argc, char *argv[])
 		}
 		root = POBJ_ROOT(pop, struct root);
 		map = D_RO(root)->map;
+	}
+
+	if (argc > 5) {
+		int num = atoi(argv[4]);
+		int elements = atoi(argv[5]);
+		for (int i=0; i<num; i++) {
+			test(elements);
+		}
+		pmemobj_close(pop);
+		//map_delete(mapc, map);
+		return 0;
 	}
 
 	char buf[INPUT_BUF_LEN];
@@ -309,6 +343,9 @@ main(int argc, char *argv[])
 				break;
 			case 'h':
 				help();
+				break;
+			case 't':
+				test(1000);
 				break;
 			default:
 				unknown_command(buf);
