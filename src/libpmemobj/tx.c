@@ -50,7 +50,7 @@
 #include "ctree.h"
 #include "valgrind_internal.h"
 
-const static int groupSize = 100;
+const static uint32_t groupSize = 100;
 struct tx_data {
 	SLIST_ENTRY(tx_data) tx_entry;
 	jmp_buf env;
