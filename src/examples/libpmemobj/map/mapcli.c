@@ -168,6 +168,21 @@ str_rebuild(const char *str)
 	}
 }
 
+static double testFail(uint64_t num, double *initialTime) {
+	struct timespec t2, t3, t4;
+	clock_gettime(CLOCK_MONOTONIC,  &t2);
+	str_insert_random_int(num);
+	//for (volatile long long i=0; i<1e9; i++) {};
+	clock_gettime(CLOCK_MONOTONIC,  &t3);
+	//time in seconds
+	*initialTime = (t3.tv_sec - t2.tv_sec) + (double) (t3.tv_nsec - t2.tv_nsec) * 1e-9;
+
+	pmemobj_tx_abort(0);
+	clock_gettime(CLOCK_MONOTONIC,  &t4);
+
+	return (t4.tv_sec - t3.tv_sec) + (double) (t4.tv_nsec - t3.tv_nsec) * 1e-9;
+}
+
 static double test(uint64_t num) {
 	struct timespec t2, t3;
 	clock_gettime(CLOCK_MONOTONIC,  &t2);
@@ -306,7 +321,14 @@ main(int argc, char *argv[])
 			printf("%d,%f\n", i*elements,sum);
 		}
 		pmemobj_tx_end_group();
-		pmemobj_close(pop);
+		if (argc >= 7) {
+
+			int fail = atoi(argv[6]);
+			double initialTime;
+			double abortTime = testFail(fail, &initialTime);
+			printf("\n%d\ninitial,%f\nRecover, %f\n", fail, initialTime, abortTime);
+		}
+		//pmemobj_close(pop);
 		//map_delete(mapc, map);
 		return 0;
 	}
