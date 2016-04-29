@@ -168,8 +168,7 @@ str_rebuild(const char *str)
 	}
 }
 
-static void test(uint64_t num) {
-	map_clear(mapc, map);
+static double test(uint64_t num) {
 	struct timespec t2, t3;
 	clock_gettime(CLOCK_MONOTONIC,  &t2);
 	str_insert_random_int(num);
@@ -177,8 +176,7 @@ static void test(uint64_t num) {
 	clock_gettime(CLOCK_MONOTONIC,  &t3);
 	//time in seconds
 	double dt1 = (t3.tv_sec - t2.tv_sec) + (double) (t3.tv_nsec - t2.tv_nsec) * 1e-9;
-
-	printf("%f\n", dt1);
+	return dt1;
 }
 
 static void
@@ -246,6 +244,14 @@ main(int argc, char *argv[])
 		return 1;
 	}
 
+	struct hashmap_args args;
+
+	if (argc > 3)
+		args.seed = atoi(argv[3]);
+	else
+		args.seed = time(NULL);
+	srand(args.seed);
+
 	if (access(path, F_OK) != 0) {
 		pop = pmemobj_create(path, POBJ_LAYOUT_NAME(map),
 				PM_HASHSET_POOL_SIZE, S_IRUSR | S_IWUSR);
@@ -255,13 +261,7 @@ main(int argc, char *argv[])
 			return 1;
 		}
 
-		struct hashmap_args args;
 
-		if (argc > 3)
-			args.seed = atoi(argv[3]);
-		else
-			args.seed = time(NULL);
-		srand(args.seed);
 
 
 		mapc = map_ctx_init(ops, pop);
@@ -298,9 +298,13 @@ main(int argc, char *argv[])
 	if (argc > 5) {
 		int num = atoi(argv[4]);
 		int elements = atoi(argv[5]);
-		for (int i=0; i<num; i++) {
+
+		for (int i=1; i<=num; i++) {
 			test(elements);
+
+			printf("%d,%f\n", i*elements,dt1);
 		}
+		//pmemobj_tx_end_group();
 		pmemobj_close(pop);
 		//map_delete(mapc, map);
 		return 0;
