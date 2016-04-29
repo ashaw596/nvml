@@ -50,6 +50,7 @@
 #include "ctree.h"
 #include "valgrind_internal.h"
 
+const static int groupSize = 100;
 struct tx_data {
 	SLIST_ENTRY(tx_data) tx_entry;
 	jmp_buf env;
@@ -1289,7 +1290,7 @@ void pmemobj_tx_commit_group(PMEMobjpool *pop, jmp_buf env)
 {
 	tx_group.count++;
 
-	if (tx_group.count>=10) {
+	if (tx_group.count>=groupSize) {
 		/*
 		struct lane_tx_runtime *lane = tx.section->runtime;
 		struct tx_data *txd = SLIST_FIRST(&lane->tx_entries);
