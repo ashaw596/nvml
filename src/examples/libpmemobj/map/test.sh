@@ -2,7 +2,7 @@
 
 PMEMBENCH_DIR=/media/ramdisk
 #PMEMBENCH_DIR=.
-NAME=10group
+NAME=orig
 for i in `seq 1 10`;
 do
     for t in ctree rbtree btree;
