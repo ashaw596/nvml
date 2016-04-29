@@ -299,10 +299,11 @@ main(int argc, char *argv[])
 		int num = atoi(argv[4]);
 		int elements = atoi(argv[5]);
 
+		double sum = 0;
 		for (int i=1; i<=num; i++) {
-			test(elements);
+			sum += test(elements);
 
-			printf("%d,%f\n", i*elements,dt1);
+			printf("%d,%f\n", i*elements,sum);
 		}
 		//pmemobj_tx_end_group();
 		pmemobj_close(pop);
