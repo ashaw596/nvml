@@ -50,6 +50,11 @@
 #include "ctree.h"
 #include "valgrind_internal.h"
 
+static uint32_t addNumber = 0;
+
+static int count_adds(void) {
+	return addNumber;
+}
 const static uint32_t groupSize = 100;
 struct tx_data {
 	SLIST_ENTRY(tx_data) tx_entry;
@@ -1515,6 +1520,7 @@ pmemobj_tx_add_common(struct tx_add_range_args *args)
 			nargs.size = apoint - nargs.offset;
 		}
 
+		addNumber++;
 		/*
 		 * Depending on the size of the block, either allocate an
 		 * entire new object or use cache.
