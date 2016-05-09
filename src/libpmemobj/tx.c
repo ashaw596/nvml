@@ -52,7 +52,7 @@
 
 static uint32_t addNumber = 0;
 
-static uint32_t count_adds(void) {
+uint32_t count_adds() {
 	return addNumber;
 }
 const static uint32_t groupSize = 100;
