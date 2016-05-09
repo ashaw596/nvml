@@ -812,7 +812,7 @@ void pmemobj_tx_commit(void);
 void pmemobj_tx_commit_group(PMEMobjpool *pop, jmp_buf env);
 void pmemobj_tx_end_group(void);
 
-uint64_t count_adds(void);
+uint32_t count_adds(void);
 
 /*
  * Cleanups current transaction. Must always be called after pmemobj_tx_begin,
