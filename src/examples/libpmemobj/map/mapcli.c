@@ -321,7 +321,7 @@ main(int argc, char *argv[])
 			printf("%d,%f\n", i*elements,sum);
 		}
 		pmemobj_tx_end_group();
-		int count = count_adds();
+		uint32_t count = count_adds();
 		printf("adds=%d\n", count);
 		if (argc >= 7) {
 
