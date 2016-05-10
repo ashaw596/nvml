@@ -1274,24 +1274,16 @@ pmemobj_tx_end()
 void pmemobj_tx_commit_group(PMEMobjpool *pop, jmp_buf env)
 {
 	tx_group.commit_count++;
-
 	if (tx_group.commit_count>=groupSize) {
-		/*
-		struct lane_tx_runtime *lane = tx.section->runtime;
-		struct tx_data *txd = SLIST_FIRST(&lane->tx_entries);
-		PMEMobjpool *pop = lane->pop;
-
-		jmp_buf *env = Malloc(sizeof (jmp_buf));
-		if (txd->env != NULL)
-			memcpy(env, txd->env, sizeof (jmp_buf));
-		else
-			memset(env, 0, sizeof (jmp_buf));
-		*/
 		tx_group.commit_count = 0;
+		pmemobj_tx_commit();
+		pmemobj_tx_end();
+	}
+}
 
 void pmemobj_tx_end_group()
 {
-	if (tx_group.count>0) {
+	if (tx_group.count > 0) {
 		tx_group.count = 0;
 		pmemobj_tx_commit();
 		pmemobj_tx_end();
