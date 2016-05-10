@@ -792,8 +792,6 @@ enum pobj_tx_lock {
  */
 int pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...);
 
-int pmemobj_tx_begin_group(PMEMobjpool *pop, jmp_buf env);
-
 /*
  * Aborts current transaction
  *
@@ -809,7 +807,26 @@ void pmemobj_tx_abort(int errnum);
  * This function must be called during TX_STAGE_WORK.
  */
 void pmemobj_tx_commit(void);
+
+/*
+ * Starts a group transaction.
+ * Starts a transaction unless a group transaction is in progress
+ *
+ * Cannot start nested transaction
+ */
+int pmemobj_tx_begin_group(PMEMobjpool *pop, jmp_buf env);
+
+/*
+ * Does a group commit. If the number of commits is higher or equal to the group size, 
+ * it commits and ends the transaction
+ *
+ * This function must be called during TX_STAGE_WORK.
+ */
 void pmemobj_tx_commit_group(PMEMobjpool *pop, jmp_buf env);
+
+/*
+ * Commits and ends a group transaction if one is in progress
+ */
 void pmemobj_tx_end_group(void);
 
 /*
