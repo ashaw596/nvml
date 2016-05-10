@@ -1288,6 +1288,11 @@ void pmemobj_tx_commit_group(PMEMobjpool *pop, jmp_buf env)
 			memset(env, 0, sizeof (jmp_buf));
 		*/
 		tx_group.commit_count = 0;
+
+void pmemobj_tx_end_group()
+{
+	if (tx_group.count>0) {
+		tx_group.count = 0;
 		pmemobj_tx_commit();
 		pmemobj_tx_end();
 	}
